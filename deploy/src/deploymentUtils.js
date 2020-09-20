@@ -59,7 +59,7 @@ async function deployContract(contractJson, args, { from, network, nonce }) {
     privateKey: deploymentPrivateKey,
     url,
     gasPrice
-  })
+  }, true)
   if (Web3Utils.hexToNumber(tx.status) !== 1 && !tx.contractAddress) {
     throw new Error('Tx failed')
   }
@@ -91,13 +91,23 @@ async function sendRawTxForeign(options) {
   })
 }
 
-async function sendRawTx({ data, nonce, to, privateKey, url, gasPrice, value }) {
+async function sendRawTx({ data, nonce, to, privateKey, url, gasPrice, value }, isDeployment=false) {
   try {
-    const txToEstimateGas = {
-      from: privateKeyToAddress(Web3Utils.bytesToHex(privateKey)),
-      value,
-      to,
-      data
+    let txToEstimateGas
+    if (isDeployment) {
+      txToEstimateGas = {
+        from: privateKeyToAddress(Web3Utils.bytesToHex(privateKey)),
+        // value,
+        // to,
+        data
+      }
+    } else {
+      txToEstimateGas = {
+        from: privateKeyToAddress(Web3Utils.bytesToHex(privateKey)),
+        value,
+        to,
+        data
+      }
     }
     const estimatedGas = BigNumber(await sendNodeRequest(url, 'eth_estimateGas', txToEstimateGas))
 
